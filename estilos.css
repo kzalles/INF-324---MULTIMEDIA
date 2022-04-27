@@ -1,0 +1,53 @@
+html, body{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 auto;
+}
+
+div{
+    width: 100%;
+}
+
+#cabecera {
+	padding: 1%;
+	text-align: center;
+	background-color: #23458f;
+	color: white;
+    font-size: 25px;
+}
+#contenido {
+	height: 100%;
+	width: 100%;
+}
+.col {
+	width: 100%;
+}
+.navbar-nav {
+    float: left;
+    margin: 0;
+    left: 45%;
+    transform: translatex(20%);
+    position: relative;
+    z-index: 1000;
+}
+.ftco-section {
+    padding: 20px;
+}
+.heading-section {
+    /*background-color: #cc3;*/
+    padding-top: 5px;
+}
+.featured-carousel {
+    /*background-color: #1dd;*/
+}
+.col {
+    /*background-color: #1dd;*/
+}
+.row {
+    /*background-color: #455;*/
+}
+.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+}

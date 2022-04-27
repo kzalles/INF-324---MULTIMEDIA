@@ -1,0 +1,204 @@
+-- phpMyAdmin SQL Dump
+-- version 5.1.1
+-- https://www.phpmyadmin.net/
+--
+-- Servidor: 127.0.0.1:3306
+-- Tiempo de generación: 27-04-2022 a las 13:16:58
+-- Versión del servidor: 5.7.36
+-- Versión de PHP: 7.4.26
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de datos: `mibaseminombre`
+--
+
+DELIMITER $$
+--
+-- Procedimientos
+--
+DROP PROCEDURE IF EXISTS `nivel`$$
+CREATE DEFINER=`moyo`@`%` PROCEDURE `nivel` (IN `p_ci` INT)  begin
+	declare nivel int(11);
+	set nivel:= (select distinct a.PERSONA_CI
+				from acceso a
+				inner join persona p 
+				on a.PERSONA_CI = p.CI
+				inner join inscripcion i on i.PERSONA_CI = p.CI and p.CI = p_ci);
+    if nivel IS NOT NULL  then
+		set nivel := 1;
+    else
+		set nivel := 2;
+    end if;
+    select nivel;
+end$$
+
+DROP PROCEDURE IF EXISTS `nivelAcceso`$$
+CREATE DEFINER=`moyo`@`%` PROCEDURE `nivelAcceso` (IN `usu` VARCHAR(20))  begin
+	declare nivel varchar(20);
+    declare n int;
+	set nivel = (select distinct a.Usuario
+				from acceso a
+				inner join persona p 
+				on a.PERSONA_CI = p.CI
+				inner join inscripcion i on i.PERSONA_CI = p.CI and a.Usuario = usu);            
+    if nivel IS NOT NULL  then
+		set n = 1;
+    else
+		set n = 2;
+    end if;
+    select n as nivel;
+end$$
+
+DROP PROCEDURE IF EXISTS `Promedio_x_alumno`$$
+CREATE DEFINER=`moyo`@`%` PROCEDURE `Promedio_x_alumno` (IN `ciP` INT(11))  begin
+	declare promedio float(5,2);
+    set promedio = (select (i.nota1+i.nota2+i.nota3)/3
+					from acceso a
+						inner join persona p 
+							on a.PERSONA_CI = p.CI
+						inner join inscripcion i 
+							on i.PERSONA_CI = p.CI where i.PERSONA_CI = ciP);
+    select promedio;                        
+end$$
+
+--
+-- Funciones
+--
+DROP FUNCTION IF EXISTS `depto`$$
+CREATE DEFINER=`moyo`@`%` FUNCTION `depto` (`ciP` INT(11)) RETURNS VARCHAR(2) CHARSET utf8 begin
+declare depto varchar(2);
+	set depto = (select Departamento from persona where CI = ciP );
+		IF depto = '01' then set depto = 'CH'; END IF;
+        IF depto = '02' then set depto = 'LP'; END IF;
+        IF depto = '03' then set depto = 'CB'; END IF;
+        IF depto = '04' then set depto = 'OR'; END IF;
+        IF depto = '05' then set depto = 'PT'; END IF;
+        IF depto = '06' then set depto = 'TJ'; END IF;
+        IF depto = '07' then set depto = 'SC'; END IF;
+        IF depto = '08' then set depto = 'BE'; END IF;
+        IF depto = '09' then set depto = 'PD'; END IF;
+      return depto;                      
+end$$
+
+DROP FUNCTION IF EXISTS `Promedio_x_alumno`$$
+CREATE DEFINER=`moyo`@`%` FUNCTION `Promedio_x_alumno` (`ciP` INT(11)) RETURNS FLOAT(5,2) begin
+declare promedio float(5,2);
+  set promedio = (select PERSONA_CI, (sum(nota1+nota2+nota3))/3 as PROMEDIO from inscripcion WHERE PERSONA_CI = ciP  GROUP BY PERSONA_CI);
+      return promedio;                      
+end$$
+
+DROP FUNCTION IF EXISTS `Promedio_x_alumno1`$$
+CREATE DEFINER=`moyo`@`%` FUNCTION `Promedio_x_alumno1` (`ciP` INT(11)) RETURNS FLOAT(5,2) begin
+declare promedio float(5,2);
+  set promedio = (select 
+				SUM((i.nota1+i.nota2+i.nota3)/3) as PROMEDIO from inscripcion i inner join persona p on p.CI = i.PERSONA_CI WHERE i.PERSONA_CI = ciP GROUP BY i.PERSONA_CI);
+      return promedio;                      
+end$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `acceso`
+--
+
+DROP TABLE IF EXISTS `acceso`;
+CREATE TABLE IF NOT EXISTS `acceso` (
+  `PERSONA_CI` int(11) NOT NULL,
+  `Usuario` varchar(20) DEFAULT NULL,
+  `Password` varchar(15) DEFAULT NULL,
+  KEY `fk_ACCESO_PERSONA1_idx` (`PERSONA_CI`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `acceso`
+--
+
+INSERT INTO `acceso` (`PERSONA_CI`, `Usuario`, `Password`) VALUES
+(2222222, 'moyo', '890'),
+(8338389, 'CARMEN', '123'),
+(8898989, 'ana', '000'),
+(9012221, 'vale', '123456'),
+(8080808, 'javi', '123'),
+(8080707, 'jayo', '000'),
+(8181818, 'adrian', '000');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inscripcion`
+--
+
+DROP TABLE IF EXISTS `inscripcion`;
+CREATE TABLE IF NOT EXISTS `inscripcion` (
+  `PERSONA_CI` int(11) NOT NULL,
+  `Sigla` varchar(10) DEFAULT NULL,
+  `nota1` float DEFAULT NULL,
+  `nota2` float DEFAULT NULL,
+  `nota3` float DEFAULT NULL,
+  `NotaFinal` float DEFAULT NULL,
+  KEY `fk_INSCRIPCION_PERSONA_idx` (`PERSONA_CI`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `inscripcion`
+--
+
+INSERT INTO `inscripcion` (`PERSONA_CI`, `Sigla`, `nota1`, `nota2`, `nota3`, `NotaFinal`) VALUES
+(8338389, 'INF324', 15, 20, 1, NULL),
+(8338389, 'INF315', 5, 5, 15, NULL),
+(8898989, 'INF324', 48, 55, 72, NULL),
+(9012221, 'INF315', 90, 85, 100, NULL),
+(9012221, 'INF324', 48, 60, 100, NULL),
+(8080808, 'INF324', 40, 55, 75, NULL),
+(8080707, 'INF324', 90, 85, 100, NULL),
+(8080707, 'INF351', 75, 80, 100, NULL),
+(8898989, 'INF351', 50, 55, 51, NULL),
+(8080808, 'INF315', 40, 35, 50, NULL),
+(9012221, 'INF351', 45, 45, 50, NULL),
+(8338389, 'INF351', 70, 20, 5, NULL),
+(8181818, NULL, NULL, NULL, NULL, NULL),
+(8181818, 'INF324', 90, 90, 80, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `persona`
+--
+
+DROP TABLE IF EXISTS `persona`;
+CREATE TABLE IF NOT EXISTS `persona` (
+  `CI` int(11) NOT NULL,
+  `Departamento` varchar(2) DEFAULT NULL,
+  `FechaNac` date DEFAULT NULL,
+  `NombreCompleto` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`CI`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `persona`
+--
+
+INSERT INTO `persona` (`CI`, `Departamento`, `FechaNac`, `NombreCompleto`) VALUES
+(8338389, '02', '2022-04-21', 'CARMEN LARIOS'),
+(8898989, '07', '2022-04-05', 'ANA MORA'),
+(2222222, '02', '1975-08-01', 'MOISES SILVA'),
+(9012221, '03', '1999-07-02', 'VALERIA ZALLES'),
+(8080808, '06', '1990-02-27', 'JAVIER RIOS MOLINA'),
+(8080707, '06', '2022-02-06', 'DAVID OLIVER'),
+(8181818, '01', '2022-06-06', 'ADRIAN PAREDES');
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
